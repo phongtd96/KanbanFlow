@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Kanban Project</title>
+
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2 class="sidebar-title">📁 Projects</h2>
+
+    <ul class="project-list">
+      {% for p in projects %}
+      <li class="project-item {% if p.id == current_project.id %}active{% endif %}"
+          data-project-id="{{ p.id }}"
+          data-project-name="{{ p.name }}">
+
+        <span class="project-name">
+          {{ p.name }}
+        </span>
+
+        <button class="delete-project" title="Delete project">
+          🗑️
+        </button>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <div class="sidebar-add">
+      <input id="projectName" placeholder="New project name">
+      <button id="addProjectBtn">Add Project</button>
+    </div>
+  </aside>  
+
+  <!-- MAIN BOARD -->
+  <main class="board" data-project-id="{{ current_project }}">
+
+    <!-- PROJECT HEADER -->
+    <div class="project-header">
+      <h1 class="project-title">
+        {% for p in projects %}
+          {% if p.id == current_project %}
+            {{ p.name }}
+          {% endif %}
+        {% endfor %}
+      </h1>
+      <span class="project-subtitle">Kanban Board</span>
+    </div>
+
+    <!-- QUICK ADD TASK -->
+    <div class="quick-add">
+      <input id="taskTitle" placeholder="Task title">
+      <input id="taskDeadline" type="date">
+      <input id="taskTag" placeholder="Tag (e.g. frontend)">
+      <select id="taskPriority">
+        <option value="1">High</option>
+        <option value="2" selected>Medium</option>
+        <option value="3">Low</option>
+      </select>
+      <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <label>
+        <input type="checkbox" id="filterOverdue">
+        Overdue only
+      </label>
+
+      <label>
+        <input type="checkbox" id="hideDone">
+        Hide Done
+      </label>
+
+      <input id="filterTag" placeholder="Filter by tags">
+
+
+      <select id="filterDeadline">
+        <option value="">All deadlines</option>
+        <option value="today">Due today</option>
+        <option value="week">Due this week</option>
+      </select>
+    </div>
+
+
+    <!-- KANBAN COLUMNS -->
+    <div class="columns">
+      {% for col in ['todo', 'doing', 'done'] %}
+      <div class="column">
+        <h3 class="column-title">
+          {{ col|capitalize }}
+
+          {% if col == 'doing' %}
+            <span class="wip">(0 / 3)</span>
+          {% endif %}
+        </h3>
+
+        <div class="task-list" id="{{ col }}">
+          {% for t in tasks if t.status == col %}
+          <div class="task"
+            data-id="{{ t.id }}"
+            data-status="{{ t.status }}"
+            data-deadline="{{ t.deadline }}"
+            data-tags="{{ t.tags }}"
+            data-priority="{{ t.priority }}">
+
+          <!-- TITLE -->
+          <div class="task-title">
+            {{ t.title }}
+          </div>
+
+          <!-- PRIORITY -->
+          <div class="task-meta">
+            {% if t.priority == 1 %}
+              <span class="priority high">🔥 High</span>
+            {% elif t.priority == 2 %}
+              <span class="priority medium">⚡ Medium</span>
+            {% else %}
+              <span class="priority low">🟢 Low</span>
+            {% endif %}
+          </div>
+
+          <!-- DEADLINE -->
+          {% if t.deadline %}
+            <div class="task-deadline">
+              ⏰ {{ t.deadline }}
+            </div>
+          {% endif %}
+
+          <!-- TAGS -->
+          {% if t.tags %}
+            <div class="task-tags">
+              {% for tag in t.tags.split(',') %}
+                <span class="task-tag">#{{ tag.strip() }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!--Burndown Chart-->
+    <div class="burndown">
+      <h3>Burndown Chart</h3>
+      <canvas id="burndownChart" height="100"></canvas>
+    </div>
+
+    
+
+  </main>
+
+</div>
+
+<script src="/static/js/kanban.js"></script>
+</body>
+</html>
